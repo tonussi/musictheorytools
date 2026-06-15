@@ -1,0 +1,167 @@
+.home-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #1a103a 40%, #0d1b2a 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #e0e0e0;
+  overflow-x: hidden;
+}
+
+.home-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem 1rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home-title {
+  margin: 0;
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.03em;
+  text-align: center;
+}
+
+.home-subtitle {
+  margin: 0;
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 400;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+}
+
+.tool-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  border-radius: 20px;
+  padding: 2rem;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease,
+              border-color 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  overflow: hidden;
+  animation: cardFadeIn 0.5s ease both;
+  animation-delay: calc(var(--card-index) * 0.1s);
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tool-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+              0 0 24px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.tool-card.disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+.tool-card-icon {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.tool-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.tool-card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  letter-spacing: -0.01em;
+}
+
+.tool-card-description {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #9ca3af;
+  line-height: 1.5;
+}
+
+.tool-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.tool-card-arrow {
+  font-size: 1.2rem;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.tool-card:hover .tool-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.tool-card-badge {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .tools-grid {
+    grid-template-columns: 1fr;
+    padding: 2rem 1rem 3rem;
+  }
+
+  .home-title {
+    font-size: 2.2rem;
+  }
+
+  .home-header {
+    padding: 2rem 1rem 0.5rem;
+  }
+
+  .tool-card {
+    padding: 1.5rem;
+  }
+}
