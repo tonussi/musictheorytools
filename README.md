@@ -1,6 +1,6 @@
-# Getting Started with Create React App
+# Music Theory Tool
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+![Music Theory Tool](./demo.png)
 
 ## Available Scripts
 
