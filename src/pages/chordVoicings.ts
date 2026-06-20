@@ -91,7 +91,7 @@ const QUALITY_CONFIGS: Record<string, QualityConfig> = {
     overrides: {
       'A': { frets: [-1, 0, 2, 0, 1, 0], fingers: [0, 0, 2, 0, 1, 0] },
       'D': { frets: [-1, -1, 0, 2, 1, 1], fingers: [0, 0, 0, 2, 1, 1] },
-      'E': { frets: [0, 2, 0, 0, 0, 0], fingers: [0, 2, 0, 0, 0, 0] },
+      'E': { frets: [0, 2, 2, 0, 0, 0], fingers: [0, 2, 3, 0, 0, 0] },
     },
   },
   dim: {
@@ -180,6 +180,42 @@ const QUALITY_CONFIGS: Record<string, QualityConfig> = {
     ],
     overrides: {
       'E': { frets: [0, 2, 0, 1, 3, 3], fingers: [0, 2, 0, 1, 3, 4] },
+    },
+  },
+  '7(13)': {
+    shapes: [
+      { stringRoot: 6, offsets: [0, 2, 0, 1, 0, 2], fingers: [1, 3, 1, 2, 1, 4] },
+    ],
+    overrides: {
+      'E': { frets: [0, 2, 0, 1, 0, 2], fingers: [0, 2, 0, 1, 0, 3] },
+      'G': { frets: [3, 2, 0, 0, 0, 2], fingers: [3, 1, 0, 0, 0, 2] },
+      'A': { frets: [-1, 0, 2, 0, 2, 2], fingers: [0, 0, 2, 0, 3, 4] },
+    },
+  },
+  '13': {
+    shapes: [
+      { stringRoot: 6, offsets: [0, -1, 0, 1, 2, 2], fingers: [1, 0, 1, 2, 3, 4] },
+    ],
+    overrides: {
+      'G': { frets: [3, -1, 0, 0, 0, 0], fingers: [2, 0, 0, 0, 0, 0] },
+      'A': { frets: [-1, 0, 2, 0, 2, 2], fingers: [0, 0, 1, 0, 2, 3] },
+    },
+  },
+  '6(9)': {
+    shapes: [
+      { stringRoot: 5, offsets: [-1, 0, 2, 1, 2, 2], fingers: [0, 1, 3, 2, 4, 4] },
+    ],
+    overrides: {
+      'C': { frets: [-1, 3, 2, 2, 3, 0], fingers: [0, 2, 1, 1, 3, 0] },
+      'A': { frets: [-1, 0, 4, 4, 2, 2], fingers: [0, 0, 3, 4, 1, 1] },
+    },
+  },
+  '7(11)': {
+    shapes: [
+      { stringRoot: 6, offsets: [0, 2, 0, 1, 0, 1], fingers: [1, 3, 1, 2, 1, 1] },
+    ],
+    overrides: {
+      'A': { frets: [-1, 0, 2, 0, 2, 0], fingers: [0, 0, 2, 0, 3, 0] },
     },
   },
 };

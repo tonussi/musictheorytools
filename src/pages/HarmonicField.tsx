@@ -1,59 +1,101 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
-import { setSelectedRoot, setHighlightedNote } from '../store/harmonicFieldSlice';
+import { setSelectedRoot, setHighlightedNote, setScaleMode, ScaleMode } from '../store/harmonicFieldSlice';
 import './HarmonicField.css';
 
 /* ── Music theory data ── */
 
 const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] as const;
 
-// Two full octaves of chromatic notes for the strip
 const TWO_OCTAVES = [...CHROMATIC, ...CHROMATIC];
 
-// Major scale intervals in semitones from root
 const MAJOR_SCALE_INTERVALS = [0, 2, 4, 5, 7, 9, 11];
+const MINOR_SCALE_INTERVALS = [0, 2, 3, 5, 7, 8, 10];
 
-// Degree info
-const DEGREES: Array<{
+interface DegreeInfo {
   degree: number;
   qualityLabel: string;
   qualityPt: string;
   type: 'major' | 'minor' | 'diminished';
-  triadIntervals: number[]; // semitones from degree root
+  triadIntervals: number[];
   roman: string;
-}> = [
-  { degree: 1, qualityLabel: 'MAJOR',  qualityPt: 'MAIOR',  type: 'major',      triadIntervals: [0, 4, 7], roman: 'I' },
-  { degree: 2, qualityLabel: 'MINOR',  qualityPt: 'MENOR',  type: 'minor',      triadIntervals: [0, 3, 7], roman: 'ii' },
-  { degree: 3, qualityLabel: 'MINOR',  qualityPt: 'MENOR',  type: 'minor',      triadIntervals: [0, 3, 7], roman: 'iii' },
-  { degree: 4, qualityLabel: 'MAJOR',  qualityPt: 'MAIOR',  type: 'major',      triadIntervals: [0, 4, 7], roman: 'IV' },
-  { degree: 5, qualityLabel: 'MAJOR',  qualityPt: 'MAIOR',  type: 'major',      triadIntervals: [0, 4, 7], roman: 'V' },
-  { degree: 6, qualityLabel: 'MINOR',  qualityPt: 'MENOR',  type: 'minor',      triadIntervals: [0, 3, 7], roman: 'vi' },
-  { degree: 7, qualityLabel: 'm(♭5)', qualityPt: 'm(♭5)',  type: 'diminished', triadIntervals: [0, 3, 6], roman: 'vii°' },
+}
+
+const MAJOR_DEGREES: DegreeInfo[] = [
+  { degree: 1, qualityLabel: 'MAJOR', qualityPt: 'MAIOR', type: 'major', triadIntervals: [0, 4, 7], roman: 'I' },
+  { degree: 2, qualityLabel: 'MINOR', qualityPt: 'MENOR', type: 'minor', triadIntervals: [0, 3, 7], roman: 'ii' },
+  { degree: 3, qualityLabel: 'MINOR', qualityPt: 'MENOR', type: 'minor', triadIntervals: [0, 3, 7], roman: 'iii' },
+  { degree: 4, qualityLabel: 'MAJOR', qualityPt: 'MAIOR', type: 'major', triadIntervals: [0, 4, 7], roman: 'IV' },
+  { degree: 5, qualityLabel: 'MAJOR', qualityPt: 'MAIOR', type: 'major', triadIntervals: [0, 4, 7], roman: 'V' },
+  { degree: 6, qualityLabel: 'MINOR', qualityPt: 'MENOR', type: 'minor', triadIntervals: [0, 3, 7], roman: 'vi' },
+  { degree: 7, qualityLabel: 'm(♭5)', qualityPt: 'm(♭5)', type: 'diminished', triadIntervals: [0, 3, 6], roman: 'vii°' },
 ];
 
-// Harmonic function colors for degree headers
-// 1°=Tonic(red), 4°=Subdominant(green), 5°=Dominant(green)
-// Others get neutral colors; the "skip" colors match your picture
-const DEGREE_HEADER_COLORS: Record<number, { bg: string; text: string; label: string }> = {
+const MINOR_DEGREES: DegreeInfo[] = [
+  { degree: 1, qualityLabel: 'MINOR', qualityPt: 'MENOR', type: 'minor', triadIntervals: [0, 3, 7], roman: 'i' },
+  { degree: 2, qualityLabel: 'm(♭5)', qualityPt: 'm(♭5)', type: 'diminished', triadIntervals: [0, 3, 6], roman: 'ii°' },
+  { degree: 3, qualityLabel: 'MAJOR', qualityPt: 'MAIOR', type: 'major', triadIntervals: [0, 4, 7], roman: 'III' },
+  { degree: 4, qualityLabel: 'MINOR', qualityPt: 'MENOR', type: 'minor', triadIntervals: [0, 3, 7], roman: 'iv' },
+  { degree: 5, qualityLabel: 'MINOR', qualityPt: 'MENOR', type: 'minor', triadIntervals: [0, 3, 7], roman: 'v' },
+  { degree: 6, qualityLabel: 'MAJOR', qualityPt: 'MAIOR', type: 'major', triadIntervals: [0, 4, 7], roman: 'VI' },
+  { degree: 7, qualityLabel: 'MAJOR', qualityPt: 'MAIOR', type: 'major', triadIntervals: [0, 4, 7], roman: 'VII' },
+];
+
+interface DegreeHeaderStyle {
+  bg: string;
+  text: string;
+  label: string;
+}
+
+const MAJOR_DEGREE_HEADER_COLORS: Record<number, DegreeHeaderStyle> = {
   1: { bg: '#22c55e', text: '#fff', label: 'TOM' },
   2: { bg: '#ef4444', text: '#fff', label: '' },
   3: { bg: '#ef4444', text: '#fff', label: '' },
-  4: { bg: '#22c55e', text: '#fff', label: 'SUBDOMINANTE' },
+  4: { bg: '#eab308', text: '#fff', label: 'SUBDOMINANTE' },
   5: { bg: '#22c55e', text: '#fff', label: 'DOMINANTE' },
   6: { bg: '#ef4444', text: '#fff', label: '' },
   7: { bg: 'rgba(255,255,255,0.08)', text: '#a1a1aa', label: '' },
 };
 
-// Guitar standard tuning: string name and open note index
+const MINOR_DEGREE_HEADER_COLORS: Record<number, DegreeHeaderStyle> = {
+  1: { bg: '#22c55e', text: '#fff', label: 'TOM' },
+  2: { bg: 'rgba(255,255,255,0.08)', text: '#a1a1aa', label: '' },
+  3: { bg: '#ef4444', text: '#fff', label: '' },
+  4: { bg: '#eab308', text: '#fff', label: 'SUBDOMINANTE' },
+  5: { bg: '#22c55e', text: '#fff', label: 'DOMINANTE' },
+  6: { bg: '#ef4444', text: '#fff', label: '' },
+  7: { bg: '#ef4444', text: '#fff', label: '' },
+};
+
+const SCALE_CONFIG: Record<ScaleMode, {
+  intervals: number[];
+  degrees: DegreeInfo[];
+  headerColors: Record<number, DegreeHeaderStyle>;
+  label: string;
+}> = {
+  major: {
+    intervals: MAJOR_SCALE_INTERVALS,
+    degrees: MAJOR_DEGREES,
+    headerColors: MAJOR_DEGREE_HEADER_COLORS,
+    label: 'Major',
+  },
+  minor: {
+    intervals: MINOR_SCALE_INTERVALS,
+    degrees: MINOR_DEGREES,
+    headerColors: MINOR_DEGREE_HEADER_COLORS,
+    label: 'Minor',
+  },
+};
+
 const GUITAR_STRINGS = [
-  { label: 'E', openNote: 4 },  // 1st string (highest)
+  { label: 'E', openNote: 4 },
   { label: 'B', openNote: 11 },
   { label: 'G', openNote: 7 },
   { label: 'D', openNote: 2 },
   { label: 'A', openNote: 9 },
-  { label: 'E', openNote: 4 },  // 6th string (lowest)
+  { label: 'E', openNote: 4 },
 ];
 
 const NUM_FRETS = 16;
@@ -68,9 +110,9 @@ function getNote(index: number): string {
   return CHROMATIC[((index % 12) + 12) % 12];
 }
 
-function getMajorScale(root: string): string[] {
+function getScale(root: string, intervals: number[]): string[] {
   const rootIdx = noteIndex(root);
-  return MAJOR_SCALE_INTERVALS.map(interval => getNote(rootIdx + interval));
+  return intervals.map(interval => getNote(rootIdx + interval));
 }
 
 function getTriadNotes(root: string, intervals: number[]): string[] {
@@ -80,30 +122,49 @@ function getTriadNotes(root: string, intervals: number[]): string[] {
 
 /* ── Component ── */
 
+const DEFAULT_CELL_WIDTH = 36;
+
 const HarmonicField: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const selectedRoot = useSelector((state: RootState) => state.harmonicField.selectedRoot);
   const highlightedNote = useSelector((state: RootState) => state.harmonicField.highlightedNote);
+  const scaleMode = useSelector((state: RootState) => state.harmonicField.scaleMode) ?? 'major';
 
-  // Sequence mode: record a shape on the fretboard, then find all matches
+  const config = SCALE_CONFIG[scaleMode];
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cellWidth, setCellWidth] = useState(DEFAULT_CELL_WIDTH);
+
+  const measureCellWidth = useCallback(() => {
+    if (!containerRef.current) return;
+    const cell = containerRef.current.querySelector('.strip-cell');
+    if (!cell) return;
+    const rendered = cell.getBoundingClientRect().width;
+    if (rendered > 0) setCellWidth(rendered);
+  }, []);
+
+  useEffect(() => {
+    measureCellWidth();
+    window.addEventListener('resize', measureCellWidth);
+    return () => window.removeEventListener('resize', measureCellWidth);
+  }, [measureCellWidth]);
+
   const [sequenceMode, setSequenceMode] = useState(false);
   const [seqCells, setSeqCells] = useState<Array<{ si: number; fret: number; note: string }>>([]);
 
-  // Compute relative offsets from first cell → shape template
   const seqShape = useMemo(() => {
     if (seqCells.length === 0) return [];
     const origin = seqCells[0];
     return seqCells.map(c => ({
-      ds: c.si - origin.si,   // string offset
-      df: c.fret - origin.fret, // fret offset
+      ds: c.si - origin.si,
+      df: c.fret - origin.fret,
       note: c.note,
     }));
   }, [seqCells]);
 
-  // After recording stops, find all positions where the shape matches
   const sequenceMatches = useMemo(() => {
-    const map = new Map<string, number>(); // "si-fret" → position (1-based)
+    const map = new Map<string, number>();
     if (sequenceMode || seqShape.length === 0) return map;
 
     for (let startS = 0; startS < GUITAR_STRINGS.length; startS++) {
@@ -134,7 +195,6 @@ const HarmonicField: React.FC = () => {
 
   const toggleSequenceMode = () => {
     if (sequenceMode) {
-      // stop recording — keep shape so matches show
       setSequenceMode(false);
     } else {
       setSequenceMode(true);
@@ -147,29 +207,27 @@ const HarmonicField: React.FC = () => {
 
   const scale = useMemo(() => {
     if (!selectedRoot) return [];
-    return getMajorScale(selectedRoot);
-  }, [selectedRoot]);
+    return getScale(selectedRoot, config.intervals);
+  }, [selectedRoot, config.intervals]);
 
-  // Which chromatic indices (0-23) are scale degrees?
   const scalePositions = useMemo(() => {
     if (rootIdx < 0) return new Map<number, number>();
-    const map = new Map<number, number>(); // chromatic position -> degree (0-based)
-    MAJOR_SCALE_INTERVALS.forEach((interval, degreeIdx) => {
+    const map = new Map<number, number>();
+    config.intervals.forEach((interval, degreeIdx) => {
       const chromaticPos = rootIdx + interval;
       map.set(chromaticPos, degreeIdx);
     });
     return map;
-  }, [rootIdx]);
+  }, [rootIdx, config.intervals]);
 
-  // Degree data with triads
   const degreeData = useMemo(() => {
     if (scale.length === 0) return [];
-    return DEGREES.map((deg, i) => {
+    return config.degrees.map((deg, i) => {
       const degRoot = scale[i];
       const triad = getTriadNotes(degRoot, deg.triadIntervals);
       return { ...deg, root: degRoot, triad };
     });
-  }, [scale]);
+  }, [scale, config.degrees]);
 
   return (
     <div className="harmonic-field">
@@ -185,11 +243,27 @@ const HarmonicField: React.FC = () => {
       <div className="hf-body">
         {/* Subtitle */}
         <p className="hf-subtitle">
-          Click a note on the chromatic strip to build the <strong>Major Harmonic Field</strong>
+          Click a note on the chromatic strip to build the <strong>{config.label} Harmonic Field</strong>
         </p>
 
+        {/* Major / Minor toggle */}
+        <div className="hf-mode-toggle">
+          <button
+            className={`hf-mode-btn ${scaleMode === 'major' ? 'active' : ''}`}
+            onClick={() => dispatch(setScaleMode('major'))}
+          >
+            Major
+          </button>
+          <button
+            className={`hf-mode-btn ${scaleMode === 'minor' ? 'active' : ''}`}
+            onClick={() => dispatch(setScaleMode('minor'))}
+          >
+            Minor
+          </button>
+        </div>
+
         {/* ═══ Unified strip container ═══ */}
-        <div className="chromatic-strip-container">
+        <div className="chromatic-strip-container" ref={containerRef}>
           {/* Chromatic strip (2 octaves) */}
           <div className="chromatic-strip">
             {TWO_OCTAVES.map((note, i) => {
@@ -219,17 +293,15 @@ const HarmonicField: React.FC = () => {
               {/* Arcs showing whole-tone jumps between consecutive degrees */}
               <svg
                 className="hf-arcs-svg"
-                style={{ marginLeft: rootIdx * 52 }}
+                style={{ marginLeft: rootIdx * cellWidth }}
               >
                 {(() => {
-                  const positions = MAJOR_SCALE_INTERVALS;
-                  const cellW = 52;
+                  const positions = config.intervals;
+                  const cellW = cellWidth;
                   const arcs = [];
-                  // Connect consecutive degrees: 1→2, 2→3, 3→4, 4→5, 5→6, 6→7
-                  // Only draw arc when they skip a note (whole tone)
                   for (let d = 0; d < 6; d++) {
                     const gap = positions[d + 1] - positions[d];
-                    if (gap <= 1) continue; // half tone (3→4), no arc
+                    if (gap <= 1) continue;
                     const x1 = positions[d] * cellW + cellW / 2;
                     const x2 = positions[d + 1] * cellW + cellW / 2;
                     const midX = (x1 + x2) / 2;
@@ -252,13 +324,13 @@ const HarmonicField: React.FC = () => {
               {/* The 12-cell shape strip */}
               <div
                 className="hf-strip"
-                style={{ marginLeft: rootIdx * 52 }}
+                style={{ marginLeft: rootIdx * cellWidth }}
               >
                 {Array.from({ length: 12 }, (_, chromIdx) => {
-                  const degIdx = MAJOR_SCALE_INTERVALS.indexOf(chromIdx);
+                  const degIdx = config.intervals.indexOf(chromIdx);
                   const isDegree = degIdx !== -1;
                   const d = isDegree ? degreeData[degIdx] : null;
-                  const hdr = d ? DEGREE_HEADER_COLORS[d.degree] : null;
+                  const hdr = d ? config.headerColors[d.degree] : null;
 
                   if (!isDegree) {
                     return <div key={chromIdx} className="hf-strip-cell hf-strip-gap" />;
@@ -293,8 +365,8 @@ const HarmonicField: React.FC = () => {
               <span className="hf-fn-value">{degreeData[0]?.root} — {degreeData[0]?.triad.join(' – ')}</span>
             </div>
             <div className="hf-fn-item">
-              <div className="hf-fn-dot" style={{ backgroundColor: '#22c55e' }} />
-              <span className="hf-fn-label" style={{ color: '#22c55e' }}>Subdominante (IV)</span>
+              <div className="hf-fn-dot" style={{ backgroundColor: '#eab308' }} />
+              <span className="hf-fn-label" style={{ color: '#eab308' }}>Subdominante (IV)</span>
               <span className="hf-fn-value">{degreeData[3]?.root} — {degreeData[3]?.triad.join(' – ')}</span>
             </div>
             <div className="hf-fn-item">

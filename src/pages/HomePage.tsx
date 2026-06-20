@@ -35,7 +35,7 @@ const TOOLS: Tool[] = [
     id: 3,
     icon: '🎹',
     title: 'Harmonic Field',
-    description: 'Build the major harmonic field — Tonic, Subdominant, Dominant',
+    description: 'Build the major and minor harmonic fields — Tonic, Subdominant, Dominant',
     route: '/harmonic-field',
     accent: '#a78bfa',
     comingSoon: false,

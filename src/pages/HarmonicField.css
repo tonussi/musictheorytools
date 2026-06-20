@@ -69,10 +69,55 @@
 }
 
 /* ═══════════════════════════════════════════
+   Mode toggle (Major / Minor)
+   ═══════════════════════════════════════════ */
+
+.hf-mode-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 1.5rem;
+}
+
+.hf-mode-btn {
+  padding: 0.5rem 1.4rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(196, 181, 253, 0.6);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.hf-mode-btn:first-child {
+  border-radius: 10px 0 0 10px;
+  border-right: none;
+}
+
+.hf-mode-btn:last-child {
+  border-radius: 0 10px 10px 0;
+}
+
+.hf-mode-btn:hover:not(.active) {
+  background: rgba(167, 139, 250, 0.1);
+  color: rgba(196, 181, 253, 0.85);
+}
+
+.hf-mode-btn.active {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #c4b5fd;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.15);
+}
+
+/* ═══════════════════════════════════════════
    Chromatic Strip (2 octaves)
    ═══════════════════════════════════════════ */
 
 .chromatic-strip-container {
+  --cell-w: 36px;
   overflow-x: auto;
   margin-bottom: 2rem;
   padding-bottom: 0.5rem;
@@ -100,8 +145,8 @@
 }
 
 .strip-cell {
-  width: 52px;
-  min-width: 52px;
+  width: var(--cell-w);
+  min-width: var(--cell-w);
   height: 72px;
   display: flex;
   flex-direction: column;
@@ -197,7 +242,7 @@
 /* ── Arcs (thirds) ── */
 .hf-arcs-svg {
   display: block;
-  width: 624px; /* 12 cells × 52px */
+  width: calc(12 * var(--cell-w));
   height: 42px;
   overflow: visible;
   transition: margin-left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -211,7 +256,7 @@
 /* ── The 12-cell shape strip ── */
 .hf-strip {
   display: flex;
-  width: 624px; /* 12 cells × 52px */
+  width: fit-content;
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   overflow: hidden;
@@ -220,8 +265,8 @@
 }
 
 .hf-strip-cell {
-  width: 52px;
-  min-width: 52px;
+  width: var(--cell-w);
+  min-width: var(--cell-w);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -537,14 +582,29 @@
    Responsive
    ═══════════════════════════════════════════ */
 
+@media (min-width: 481px) {
+  .chromatic-strip-container {
+    --cell-w: 42px;
+  }
+}
+
+@media (min-width: 769px) {
+  .chromatic-strip-container {
+    --cell-w: 52px;
+  }
+}
+
 @media (max-width: 768px) {
   .hf-body {
     padding: 1.5rem 0.75rem 3rem;
   }
 
   .strip-cell {
-    width: 42px;
-    min-width: 42px;
+    height: 60px;
+  }
+
+  .hf-strip-gap,
+  .hf-strip-degree {
     height: 60px;
   }
 
@@ -575,8 +635,11 @@
   }
 
   .strip-cell {
-    width: 36px;
-    min-width: 36px;
+    height: 52px;
+  }
+
+  .hf-strip-gap,
+  .hf-strip-degree {
     height: 52px;
   }
 
@@ -589,8 +652,13 @@
     padding: 0 3px;
   }
 
-  .hf-quality-cell {
+  .hf-strip-header {
     font-size: 0.6rem;
+    padding: 0.15rem 0;
+  }
+
+  .hf-strip-symbol {
+    font-size: 1.1rem;
   }
 }
 

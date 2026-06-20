@@ -27,12 +27,24 @@ const CHORD_QUALITIES: Record<string, { intervals: number[]; label: string; form
   '9':      { intervals: [0, 4, 7, 10, 14], label: '9',   formula: '1 – 3 – 5 – ♭7 – 9', description: 'Rich, funky dominant. Essential for funk, soul, and jazz.' },
   dim7:     { intervals: [0, 3, 6, 9],    label: 'dim7',  formula: '1 – ♭3 – ♭5 – ♭♭7', description: 'Fully diminished. Extreme tension, symmetrical construction.' },
   '7#9':    { intervals: [0, 4, 7, 10, 15], label: '7♯9', formula: '1 – 3 – 5 – ♭7 – ♯9', description: 'The "Hendrix chord". Aggressive, bluesy, iconic.' },
+  '7(13)':  { intervals: [0, 4, 7, 10, 21], label: '7(13)', formula: '1 – 3 – 5 – ♭7 – 13', description: 'Dominant 7th with added 13th. Bright extension over dominant tension.' },
+  '13':     { intervals: [0, 4, 7, 10, 14, 21], label: '13', formula: '1 – 3 – 5 – ♭7 – 9 – 13', description: 'Full dominant 13th. Lush, wide voicing. The crown of dominant chords.' },
+  '6(9)':   { intervals: [0, 4, 7, 9, 14], label: '6(9)', formula: '1 – 3 – 5 – 6 – 9', description: 'Sweet and modern. Combines the warmth of 6th with the sparkle of 9th.' },
+  '7(11)':  { intervals: [0, 4, 7, 10, 17], label: '7(11)', formula: '1 – 3 – 5 – ♭7 – 11', description: 'Dominant 7th with natural 11th. Adds a suspended quality over the dominant tension.' },
 };
 
 const INTERVAL_NAMES: Record<number, string> = {
   0: 'R',   1: '♭2',  2: '2',   3: '♭3',  4: '3',   5: '4',
   6: '♭5',  7: '5',   8: '♯5',  9: '6',   10: '♭7', 11: '7',
-  12: '8',  13: '♭9', 14: '9',  15: '♯9',
+  12: '8',  13: '♭9', 14: '9',  15: '♯9', 16: '♭11', 17: '11',
+  18: '♯11', 19: '♭13', 20: '♭13', 21: '13',
+};
+
+const THIRTEENTH_COMBINATIONS: Record<string, { steps: string[]; labels: string[] }> = {
+  '7(13)': { steps: ['7', '7(13)', '6'],   labels: ['Base 7th', '+ 13th', 'Simplified'] },
+  '13':    { steps: ['7', '13', '6'],       labels: ['Base 7th', 'Full 13th', 'Simplified'] },
+  '6(9)':  { steps: ['6', '6(9)', '9'],     labels: ['Base 6th', '6 + 9th', 'Dominant 9th'] },
+  '7(11)': { steps: ['7', '7(11)', 'sus4'], labels: ['Base 7th', '+ 11th', 'Related sus4'] },
 };
 
 
@@ -69,6 +81,17 @@ const ChordViewer: React.FC = () => {
     () => getChordVoicing(selectedRoot, selectedQuality),
     [selectedRoot, selectedQuality]
   );
+
+  const combination = useMemo(() => {
+    const combo = THIRTEENTH_COMBINATIONS[selectedQuality];
+    if (!combo) return null;
+    return combo.steps.map((q, i) => ({
+      quality: q,
+      label: combo.labels[i],
+      chordName: `${selectedRoot}${CHORD_QUALITIES[q].label}`,
+      voicing: getChordVoicing(selectedRoot, q),
+    }));
+  }, [selectedRoot, selectedQuality]);
 
   const chordName = `${selectedRoot}${quality.label}`;
 
@@ -158,6 +181,31 @@ const ChordViewer: React.FC = () => {
             rootNote={selectedRoot}
           />
         </div>
+
+        {/* 13th Combination Breakdown */}
+        {combination && (
+          <div className="combination-panel">
+            <h3 className="combination-title">Combination Breakdown</h3>
+            <p className="combination-subtitle">
+              How <strong>{chordName}</strong> relates to its family of voicings
+            </p>
+            <div className="combination-grid">
+              {combination.map((step, i) => (
+                <React.Fragment key={step.quality}>
+                  {i > 0 && <span className="combination-arrow">→</span>}
+                  <div className="combination-card">
+                    <span className="combination-step-label">{step.label}</span>
+                    <span className="combination-chord-name">{step.chordName}</span>
+                    <ChordDiagram
+                      voicing={step.voicing}
+                      rootNote={selectedRoot}
+                    />
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Overlay backdrop */}
