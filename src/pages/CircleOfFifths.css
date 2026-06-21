@@ -228,7 +228,7 @@
   pointer-events: none;
   font-weight: 800;
   letter-spacing: 0.04em;
-  transform: translate(-2px, -14px);
+  transform: translate(-5px, -16px);
 }
 
 .cof-overlay-numeral-major {
@@ -403,7 +403,7 @@
   letter-spacing: 0.08em;
   color: #6b7280;
   font-weight: 600;
-  min-width: 80px;
+  min-width: 140px;
 }
 
 .relation-value {
