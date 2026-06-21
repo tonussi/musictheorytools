@@ -157,7 +157,7 @@
 /* Text labels on the wheel */
 .cof-label-major {
   fill: #e5e7eb;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 700;
   text-anchor: middle;
   dominant-baseline: central;
@@ -167,7 +167,7 @@
 
 .cof-label-major.selected {
   fill: #fbbf24;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .cof-label-major.highlighted {
@@ -176,7 +176,7 @@
 
 .cof-label-minor {
   fill: #a1a1aa;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 600;
   text-anchor: middle;
   dominant-baseline: central;
@@ -186,7 +186,7 @@
 
 .cof-label-minor.selected {
   fill: #c4b5fd;
-  font-size: 12.5px;
+  font-size: 16px;
 }
 
 .cof-label-minor.highlighted {
@@ -195,7 +195,7 @@
 
 .cof-label-dim {
   fill: #71717a;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 600;
   text-anchor: middle;
   dominant-baseline: central;
@@ -228,17 +228,17 @@
   pointer-events: none;
   font-weight: 800;
   letter-spacing: 0.04em;
-  transform: translate(-8px, -10px);
+  transform: translate(-2px, -14px);
 }
 
 .cof-overlay-numeral-major {
-  fill: rgba(251, 191, 36, 0.5);
-  font-size: 11px;
+  fill: #fbbf24;
+  font-size: 15px;
 }
 
 .cof-overlay-numeral-minor {
-  fill: rgba(167, 139, 250, 0.45);
-  font-size: 9.5px;
+  fill: #c4b5fd;
+  font-size: 13px;
 }
 
 /* Center circle decoration */

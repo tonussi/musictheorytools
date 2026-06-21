@@ -120,8 +120,8 @@ interface DiatonicChord {
 function getDiatonicChords(keyIndex: number): DiatonicChord[] {
 
   // In circle of fifths: going CCW = up a 4th, CW = up a 5th
-  // For key at index i:  IV = i-1, V = i+1, ii = i-2, vi = i (minor), iii = i+1 (minor), vii° = i (dim)
-  const iiIdx  = (keyIndex + 10) % 12; // 2 steps CCW
+  // ii = rel. minor of IV, iii = rel. minor of V, vi = rel. minor of I
+  const iiIdx  = (keyIndex + 11) % 12; // same position as IV (rel. minor of IV)
   const iiiIdx = (keyIndex + 1) % 12;  // 1 step CW (minor of V)
   const IVIdx  = (keyIndex + 11) % 12; // 1 step CCW
   const VIdx   = (keyIndex + 1) % 12;  // 1 step CW
@@ -146,7 +146,7 @@ function getHighlightedIndices(keyIndex: number): {
 } {
   const IVIdx = (keyIndex + 11) % 12;
   const VIdx  = (keyIndex + 1) % 12;
-  const iiIdx = (keyIndex + 10) % 12;
+  const iiIdx = (keyIndex + 11) % 12;
   const iiiIdx = (keyIndex + 1) % 12;
   const viIdx = keyIndex;
 

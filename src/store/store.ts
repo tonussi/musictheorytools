@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import chordViewerReducer from './chordViewerSlice';
 import circleOfFifthsReducer from './circleOfFifthsSlice';
 import harmonicFieldReducer from './harmonicFieldSlice';
+import rhythmTrainerReducer from './rhythmTrainerSlice';
 import { loadState, saveState } from './persistence';
 
 const SAVE_DEBOUNCE_MS = 300;
@@ -10,6 +11,7 @@ const rootReducer = combineReducers({
   chordViewer: chordViewerReducer,
   circleOfFifths: circleOfFifthsReducer,
   harmonicField: harmonicFieldReducer,
+  rhythmTrainer: rhythmTrainerReducer,
 });
 
 const preloadedState = loadState() as any;

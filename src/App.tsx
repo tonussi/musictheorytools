@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import ChordViewer from './pages/ChordViewer';
 import CircleOfFifths from './pages/CircleOfFifths';
 import HarmonicField from './pages/HarmonicField';
+import RhythmTrainer from './pages/RhythmTrainer';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/chord-viewer" element={<ChordViewer />} />
           <Route path="/circle-of-fifths" element={<CircleOfFifths />} />
           <Route path="/harmonic-field" element={<HarmonicField />} />
+          <Route path="/rhythm-trainer" element={<RhythmTrainer />} />
         </Routes>
       </div>
     </Router>

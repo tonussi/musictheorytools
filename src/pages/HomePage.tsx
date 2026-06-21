@@ -44,10 +44,10 @@ const TOOLS: Tool[] = [
     id: 4,
     icon: '🥁',
     title: 'Rhythm Trainer',
-    description: 'Practice rhythm patterns and time signatures',
-    route: '#',
+    description: 'Build partiture with tablature — drag and drop notes onto the staff',
+    route: '/rhythm-trainer',
     accent: '#f472b6',
-    comingSoon: true,
+    comingSoon: false,
   },
 ];
 
