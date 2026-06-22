@@ -612,6 +612,270 @@
   fill: #a78bfa;
 }
 
+/* ═══════════════════════════════════════════
+   Chord Progressions Section
+   ═══════════════════════════════════════════ */
+
+.cof-progressions-section {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.cof-progressions-section h3 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #a78bfa;
+  font-weight: 600;
+  margin: 0 0 0.4rem;
+  text-align: center;
+}
+
+.cof-progressions-section .cof-hint {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+/* ── Top controls bar ── */
+.prog-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.prog-bpm-control {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.prog-bpm-control label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.prog-bpm-control input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.prog-bpm-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fbbf24;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+  transition: box-shadow 0.2s ease;
+}
+
+.prog-bpm-control input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.6);
+}
+
+.prog-bpm-control input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fbbf24;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+.prog-bpm-value {
+  min-width: 3ch;
+  text-align: center;
+  font-weight: 700;
+  color: #fbbf24;
+  font-variant-numeric: tabular-nums;
+}
+
+.prog-regenerate-btn {
+  background: rgba(167, 139, 250, 0.1);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  color: #c4b5fd;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.prog-regenerate-btn:hover {
+  background: rgba(167, 139, 250, 0.2);
+  border-color: rgba(167, 139, 250, 0.45);
+  transform: scale(1.03);
+}
+
+/* ── Progression rows container ── */
+.prog-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* ── Single progression row ── */
+.prog-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 0.5rem 0.6rem;
+  transition: all 0.25s ease;
+}
+
+.prog-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.prog-row.prog-row-active {
+  background: rgba(251, 191, 36, 0.04);
+  border-color: rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.06);
+}
+
+.prog-row-index {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #4b5563;
+  min-width: 1.2rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Play / pause button ── */
+.prog-play-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  background: rgba(251, 191, 36, 0.08);
+  color: #fbbf24;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.prog-play-btn:hover {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.5);
+  transform: scale(1.1);
+}
+
+.prog-play-btn.playing {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: rgba(251, 191, 36, 0.6);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
+}
+
+/* ── Chord cells inside a row ── */
+.prog-chords {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.prog-chord-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  min-width: 42px;
+  transition: all 0.15s ease;
+}
+
+.prog-chord-cell .prog-numeral {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #d1d5db;
+  letter-spacing: 0.02em;
+}
+
+.prog-chord-cell .prog-chord-name {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* Chord type color coding */
+.prog-chord-cell.prog-type-tonic .prog-numeral     { color: #fcd34d; }
+.prog-chord-cell.prog-type-tonic .prog-chord-name   { color: #b08d1a; }
+
+.prog-chord-cell.prog-type-subdominant .prog-numeral     { color: #86efac; }
+.prog-chord-cell.prog-type-subdominant .prog-chord-name   { color: #3e8e5e; }
+
+.prog-chord-cell.prog-type-dominant .prog-numeral     { color: #a5b4fc; }
+.prog-chord-cell.prog-type-dominant .prog-chord-name   { color: #5c6bc0; }
+
+.prog-chord-cell.prog-type-minor .prog-numeral     { color: #c4b5fd; }
+.prog-chord-cell.prog-type-minor .prog-chord-name   { color: #7c6db8; }
+
+.prog-chord-cell.prog-type-dim .prog-numeral     { color: #f9a8d4; }
+.prog-chord-cell.prog-type-dim .prog-chord-name   { color: #b05c87; }
+
+/* ── Playing highlight ── */
+.prog-chord-cell.prog-playing {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.25),
+              inset 0 0 8px rgba(251, 191, 36, 0.1);
+  animation: progPulse 0.6s ease-in-out;
+}
+
+.prog-chord-cell.prog-playing .prog-numeral {
+  color: #fff !important;
+}
+
+.prog-chord-cell.prog-playing .prog-chord-name {
+  color: #fcd34d !important;
+}
+
+@keyframes progPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+/* ── Loop arrow indicator ── */
+.prog-loop-arrow {
+  font-size: 0.7rem;
+  color: #4b5563;
+  flex-shrink: 0;
+  margin-left: -0.1rem;
+}
+
 /* ── Responsive ── */
 @media (max-width: 900px) {
   .cof-main {

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useMemo } from 'react';
+import React, { useCallback, useRef, useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
@@ -158,6 +158,113 @@ function getHighlightedIndices(keyIndex: number): {
 }
 
 /* ═══════════════════════════════════════════
+   Chord progression generator (Markov + φ)
+   ═══════════════════════════════════════════ */
+
+/** Scale degree indices: 0=I, 1=ii, 2=iii, 3=IV, 4=V, 5=vi, 6=vii° */
+type Degree = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+const DEGREE_NUMERALS = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'] as const;
+
+const DEGREE_TYPE_CLASS: Record<number, string> = {
+  0: 'prog-type-tonic',
+  1: 'prog-type-minor',
+  2: 'prog-type-minor',
+  3: 'prog-type-subdominant',
+  4: 'prog-type-dominant',
+  5: 'prog-type-minor',
+  6: 'prog-type-dim',
+};
+
+/**
+ * Markov transition table weighted by harmonic gravity.
+ * Each entry: [targetDegree, weight].
+ * Weights are relative — the walker normalises them at each step.
+ */
+const TRANSITIONS: Record<number, [Degree, number][]> = {
+  0: [[1, 2], [2, 1], [3, 4], [4, 5], [5, 3], [6, 0.5]],   // I  → mostly IV, V
+  1: [[4, 5], [6, 2]],                                        // ii → V (strong), vii°
+  2: [[3, 4], [5, 3]],                                        // iii → IV, vi
+  3: [[0, 3], [4, 5], [1, 2], [6, 1]],                        // IV → V (strong), I, ii
+  4: [[0, 6], [5, 3]],                                        // V  → I (strongest), vi
+  5: [[1, 4], [3, 3], [4, 2]],                                // vi → ii, IV, V
+  6: [[0, 6], [2, 1]],                                        // vii° → I (dominant function)
+};
+
+/** Golden ratio — used to bias toward the strongest resolution at each step. */
+const PHI_INV = 2 / (1 + Math.sqrt(5)); // ≈ 0.618
+
+/** Fibonacci-derived progression lengths for musically satisfying loops. */
+const FIB_LENGTHS = [3, 5, 8, 13];
+
+/** Deterministic pseudo-random from a seed — returns value in [0, 1). */
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+interface ProgressionStep {
+  degree: Degree;
+  numeral: string;
+  chordName: string;
+  typeClass: string;
+}
+
+function generateSingleProgression(
+  rand: () => number,
+  keyIndex: number,
+): ProgressionStep[] {
+  const chords = getDiatonicChords(keyIndex);
+  const length = FIB_LENGTHS[Math.floor(rand() * FIB_LENGTHS.length)];
+
+  const degrees: Degree[] = [0]; // always start on I
+
+  while (degrees.length < length - 1) {
+    const current = degrees[degrees.length - 1];
+    const exits = TRANSITIONS[current];
+    const totalWeight = exits.reduce((sum, [, w]) => sum + w, 0);
+
+    // Golden-ratio split: φ⁻¹ chance of picking the top-weighted exit
+    const sorted = [...exits].sort((a, b) => b[1] - a[1]);
+    const r = rand();
+
+    if (r < PHI_INV && sorted.length > 0) {
+      degrees.push(sorted[0][0]);
+    } else {
+      // Weighted random among all exits
+      let pick = rand() * totalWeight;
+      let chosen: Degree = exits[0][0];
+      for (const [deg, w] of exits) {
+        pick -= w;
+        if (pick <= 0) { chosen = deg; break; }
+      }
+      degrees.push(chosen);
+    }
+  }
+
+  degrees.push(0); // always end on I for clean looping
+
+  return degrees.map(deg => ({
+    degree: deg,
+    numeral: DEGREE_NUMERALS[deg],
+    chordName: chords[deg].name,
+    typeClass: DEGREE_TYPE_CLASS[deg],
+  }));
+}
+
+const PROGRESSION_COUNT = 10;
+
+function generateProgressions(keyIndex: number, seed: number): ProgressionStep[][] {
+  const rand = seededRandom(seed);
+  return Array.from({ length: PROGRESSION_COUNT }, () =>
+    generateSingleProgression(rand, keyIndex),
+  );
+}
+
+/* ═══════════════════════════════════════════
    Component
    ═══════════════════════════════════════════ */
 
@@ -191,6 +298,80 @@ const CircleOfFifths: React.FC = () => {
   /* Derived data */
   const highlights = useMemo(() => getHighlightedIndices(selectedIndex), [selectedIndex]);
   const diatonicChords = useMemo(() => getDiatonicChords(selectedIndex), [selectedIndex]);
+
+  /* ── Progression generator state ── */
+  const [progSeed, setProgSeed] = useState(42);
+  const [bpm, setBpm] = useState(60);
+  const [playingRow, setPlayingRow] = useState<number | null>(null);
+  const [playingStep, setPlayingStep] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const progressions = useMemo(
+    () => generateProgressions(selectedIndex, progSeed),
+    [selectedIndex, progSeed],
+  );
+
+  const stopPlayback = useCallback(() => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setPlayingRow(null);
+    setPlayingStep(0);
+  }, []);
+
+  const startPlayback = useCallback((rowIndex: number) => {
+    stopPlayback();
+    setPlayingRow(rowIndex);
+    setPlayingStep(0);
+
+    const msPerBeat = 60000 / bpm;
+    const progression = progressions[rowIndex];
+    let step = 0;
+
+    intervalRef.current = setInterval(() => {
+      step = (step + 1) % progression.length;
+      setPlayingStep(step);
+    }, msPerBeat);
+  }, [bpm, progressions, stopPlayback]);
+
+  const togglePlayback = useCallback((rowIndex: number) => {
+    if (playingRow === rowIndex) {
+      stopPlayback();
+    } else {
+      startPlayback(rowIndex);
+    }
+  }, [playingRow, stopPlayback, startPlayback]);
+
+  // Restart interval when BPM changes mid-playback
+  useEffect(() => {
+    if (playingRow === null) return;
+    const msPerBeat = 60000 / bpm;
+    const progression = progressions[playingRow];
+
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+    }
+
+    let step = playingStep;
+    intervalRef.current = setInterval(() => {
+      step = (step + 1) % progression.length;
+      setPlayingStep(step);
+    }, msPerBeat);
+
+    return () => {
+      if (intervalRef.current !== null) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bpm]);
+
+  // Stop playback when key changes
+  useEffect(() => {
+    stopPlayback();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIndex]);
 
   /** Rotate the wheel so key at `index` is at the top. Uses shortest-path delta. */
   const rotateToIndex = useCallback((index: number) => {
@@ -461,6 +642,69 @@ const CircleOfFifths: React.FC = () => {
                   <span className="relation-label">Rel. Minor (vi)</span>
                   <span className="relation-value rel-minor">{MINOR_KEYS[selectedIndex]}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* ── Chord Progressions ── */}
+            <div className="info-section">
+              <h3>Chord Progressions</h3>
+              <p className="cof-hint" style={{ textAlign: 'left', marginBottom: '0.75rem' }}>
+                <span>φ-weighted</span> Markov chains with <span>Fibonacci</span> loop lengths
+              </p>
+
+              <div className="prog-controls">
+                <div className="prog-bpm-control">
+                  <label htmlFor="bpm-slider">BPM</label>
+                  <input
+                    id="bpm-slider"
+                    type="range"
+                    min={30}
+                    max={200}
+                    value={bpm}
+                    onChange={e => setBpm(Number(e.target.value))}
+                  />
+                  <span className="prog-bpm-value">{bpm}</span>
+                </div>
+                <button
+                  className="prog-regenerate-btn"
+                  onClick={() => { stopPlayback(); setProgSeed(s => s + 1); }}
+                >
+                  ↻ Regenerate
+                </button>
+              </div>
+
+              <div className="prog-rows">
+                {progressions.map((prog, rowIdx) => (
+                  <div
+                    key={rowIdx}
+                    className={`prog-row ${playingRow === rowIdx ? 'prog-row-active' : ''}`}
+                  >
+                    <span className="prog-row-index">{rowIdx + 1}</span>
+                    <button
+                      className={`prog-play-btn ${playingRow === rowIdx ? 'playing' : ''}`}
+                      onClick={() => togglePlayback(rowIdx)}
+                      aria-label={playingRow === rowIdx ? 'Pause' : 'Play'}
+                    >
+                      {playingRow === rowIdx ? '⏸' : '▶'}
+                    </button>
+                    <div className="prog-chords">
+                      {prog.map((step, stepIdx) => (
+                        <div
+                          key={stepIdx}
+                          className={[
+                            'prog-chord-cell',
+                            step.typeClass,
+                            playingRow === rowIdx && playingStep === stepIdx ? 'prog-playing' : '',
+                          ].join(' ')}
+                        >
+                          <span className="prog-numeral">{step.numeral}</span>
+                          <span className="prog-chord-name">{step.chordName}</span>
+                        </div>
+                      ))}
+                      <span className="prog-loop-arrow">↺</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
